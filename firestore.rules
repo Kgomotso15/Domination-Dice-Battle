@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Shape checks so a tampered client cannot write junk.
+    function validGame(d) {
+      return d.keys().hasAll(['ownerUid', 'ownerName', 'status', 'state'])
+          && d.ownerUid is string
+          && d.ownerName is string && d.ownerName.size() <= 40
+          && d.status in ['active', 'finished']
+          && d.state is map;
+    }
+
+    function validEvent(d) {
+      return d.keys().hasAll(['seq', 'type', 'text'])
+          && d.seq is number
+          && d.type in ['system', 'decision', 'battle_start', 'battle_round', 'battle_end', 'commentary']
+          && d.text is string && d.text.size() <= 800;
+    }
+
+    // Profiles: private to the user.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Games are public to read (so a shared link works for any visitor),
+    // but only the signed-in owner can create or change one.
+    match /games/{gameId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && validGame(request.resource.data);
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && validGame(request.resource.data);
+      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+
+      match /events/{eventId} {
+        allow read: if true;
+        allow create: if request.auth != null
+                      && get(/databases/$(database)/documents/games/$(gameId)).data.ownerUid == request.auth.uid
+                      && validEvent(request.resource.data);
+        allow update, delete: if false; // the log is append-only
+      }
+    }
+  }
+}

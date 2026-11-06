@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Domination - Dice Battle</title>
+  <meta name="description" content="Domination - Dice Battle. Your nation, your strategy. Your fate. A single-player world conquest dice game against AI generals." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Shared artwork: the soldier silhouette and the city skyline are defined ONCE here and reused
+       everywhere with <use href="#soldier"> / <use href="#skyline">. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="soldier" viewBox="0 0 100 140">
+        <path d="M28 40 Q28 12 50 10 Q72 12 72 40 Z"/>
+        <path d="M24 38 H76 V45 H24 Z"/>
+        <ellipse cx="50" cy="56" rx="16" ry="18"/>
+        <path d="M12 140 L17 88 Q21 72 40 70 L60 70 Q79 72 83 88 L88 140 Z"/>
+        <path d="M66 100 L94 58 L99 62 L73 108 Z"/>
+      </symbol>
+      <symbol id="skyline" viewBox="0 0 1400 200" preserveAspectRatio="none">
+        <path d="M0 200V150H40V118H72V160H112V96H146V172H186V128H226V200ZM250 200V140H290V104H330V152H372V200ZM470 200V132H506V92H540V150H580V118H620V200ZM760 200V110H800V74H836V140H880V200ZM1000 200V150H1030L1044 120L1058 150H1090V200ZM1090 200V130H1130V150H1170V104H1214V160H1260V122H1300V176H1340V138H1400V200Z"/>
+        <path d="M385 200L408 118L414 56L420 28L426 56L432 118L455 200L441 200L426 150L414 150L399 200Z"/>
+        <path d="M660 200V78L670 54L680 36L690 54L700 78V200Z"/>
+        <path d="M1012 200L1000 168H1088L1076 200Z M1018 168L1026 140H1062L1070 168Z M1028 140L1036 116H1052L1060 140Z"/>
+        <path d="M900 200V120L908 98L906 76L912 56L918 76L916 98L924 120V200Z"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Full-screen loading overlay (spinning globe). JavaScript adds the class "done" to hide it. -->
+  <div id="loading" class="loading" role="status" aria-live="polite">
+    <svg class="globe" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="40"/><ellipse cx="50" cy="50" rx="18" ry="40"/><ellipse cx="50" cy="50" rx="34" ry="40"/>
+      <path d="M10 50H90M16 28H84M16 72H84"/>
+    </svg>
+    <p>Loading</p>
+    <div class="load-bar"><i></i></div>
+  </div>
+
+  <!-- Top bar: the game name on the left, the user box and settings button on the right. -->
+  <header class="top">
+    <a class="brand" href="./">Domination <b>- Dice Battle</b></a>
+    <div class="top-right">
+      <div id="userBox" class="user"></div>
+      <button type="button" id="settingsBtn" class="icon-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Shown only if the Firebase config has not been filled in (see js/main.js). -->
+    <section id="setupNotice" class="panel notice" hidden>
+      <h1>Connect Firebase first</h1>
+      <p>Open <code>js/config/firebase-config.js</code> and paste your Firebase web app config. The README walks through it step by step.</p>
+    </section>
+
+    <!-- SCREEN 1: the title menu (Play / Watch / How to play / Settings). -->
+    <section id="menu" class="screen menu">
+      <div class="hero">
+        <svg class="soldier left" viewBox="0 0 100 140" aria-hidden="true"><use href="#soldier"/></svg>
+        <div class="menu-center">
+          <h1 class="title"><span>Domination</span><em>Dice Battle</em></h1>
+          <p class="sub">Select your country. Roll. Conquer.</p>
+          <nav class="menu-btns" aria-label="Main menu">
+            <button type="button" id="menuPlay" class="btn-primary big">Play</button>
+            <button type="button" id="menuWatch" class="btn-soft">Watch live games</button>
+            <button type="button" id="menuHow" class="btn-soft">How to play</button>
+            <button type="button" id="menuSettings" class="btn-soft">Settings</button>
+          </nav>
+        </div>
+        <svg class="soldier right" viewBox="0 0 100 140" aria-hidden="true"><use href="#soldier"/></svg>
+      </div>
+      <svg class="skyline" viewBox="0 0 1400 200" preserveAspectRatio="none" aria-hidden="true"><use href="#skyline"/></svg>
+      <p class="tagline">Your nation, your strategy. Your fate.</p>
+    </section>
+
+    <!-- SCREEN 2: the command centre: two searchable, filterable lists of games. -->
+    <section id="hub" class="screen" hidden>
+      <div class="screen-head">
+        <button type="button" id="hubBack" class="btn-soft">Back</button>
+        <h1>Command centre</h1>
+        <button type="button" id="newGameBtn" class="btn-primary">New campaign</button>
+      </div>
+      <div class="hub-grid">
+        <div id="myBlock" class="panel glist">
+          <h2>Your campaigns</h2>
+          <div class="filters">
+            <input type="search" placeholder="Search your games" aria-label="Search your games" />
+            <select aria-label="Filter your games by status">
+              <option value="all">All</option><option value="active">In progress</option><option value="finished">Finished</option>
+            </select>
+          </div>
+          <ul id="myGames" class="games"></ul>
+        </div>
+        <div id="liveBlock" class="panel glist">
+          <h2>Live games anyone can watch</h2>
+          <div class="filters">
+            <input type="search" placeholder="Search by country or player" aria-label="Search live games" />
+            <select aria-label="Filter live games by status">
+              <option value="all">All</option><option value="active">In progress</option><option value="finished">Finished</option>
+            </select>
+          </div>
+          <ul id="recentGames" class="games"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: pick your country from all 196, with search and soldier-band filters. -->
+    <section id="select" class="screen" hidden>
+      <h1 class="center-title">Select your country</h1>
+      <div class="picker-tools">
+        <input id="countrySearch" type="search" placeholder="Search 196 countries" aria-label="Search countries" />
+        <div id="bandChips" class="chips" role="group" aria-label="Filter by starting soldiers">
+          <button type="button" data-band="all" class="on">All</button>
+          <button type="button" data-band="1-3">1 to 3 soldiers</button>
+          <button type="button" data-band="4-6">4 to 6</button>
+          <button type="button" data-band="7-9">7 to 9</button>
+        </div>
+      </div>
+      <div id="countryGrid" class="country-grid" role="radiogroup" aria-label="Countries"></div>
+      <div class="picker-bar">
+        <p id="pickerInfo" class="info"></p>
+        <button type="button" id="pickerBack" class="btn-soft">Back</button>
+        <button type="button" id="pickerConfirm" class="btn-primary">Confirm</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: the game itself: battle scene and controls on the left, board and log on the right. -->
+    <section id="game" class="screen" hidden>
+      <div class="game-head">
+        <div>
+          <h1 id="gameTitle">Loading</h1>
+          <p id="statusLine" class="muted"></p>
+        </div>
+        <div class="head-actions">
+          <span id="modeBadge" class="badge" data-mode="watch">Watching</span>
+          <button type="button" id="shareBtn" class="btn-soft">Copy watch link</button>
+          <a class="btn-soft" href="./">All games</a>
+        </div>
+      </div>
+
+      <div class="game-grid">
+        <div class="left">
+          <!-- The battle panel: banners, canvas scene, VS sign, dice rows and commentary. -->
+          <div id="arenaPanel" class="arena-panel">
+            <div class="hud">
+              <div id="hudAttacker" class="side attacker"></div>
+              <div id="roundBadge" class="round">Round 1</div>
+              <div id="hudDefender" class="side defender"></div>
+            </div>
+            <canvas id="arena" aria-label="Battle scene"></canvas>
+            <div class="vs" aria-hidden="true">VS</div>
+            <div id="turnFlash" class="turn-flash" aria-hidden="true"></div>
+            <div class="dice-rows">
+              <div id="diceAttacker" class="dice" aria-label="Attacker dice"></div>
+              <div id="diceDefender" class="dice" aria-label="Defender dice"></div>
+            </div>
+            <p id="caption" class="caption" aria-live="polite"></p>
+          </div>
+          <!-- Buttons for your turn. JavaScript fills this in (ControlsView.js). -->
+          <div id="controls" class="controls panel"></div>
+        </div>
+
+        <div class="right">
+          <!-- The 10 players with their country and soldier totals (BoardView.js). -->
+          <ul id="players" class="players"></ul>
+          <!-- The 10 country cards with live soldier counts. -->
+          <div id="board" class="board"></div>
+          <h2 class="log-title">Game log</h2>
+          <!-- The game log: every AI decision with its reason, every roll, every commentary line. -->
+          <ol id="log" class="log-list" aria-live="polite"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- POPUP: sign in / create account. Opened with JavaScript (showModal). -->
+  <dialog id="authDialog" class="modal">
+    <form id="authForm" method="dialog">
+      <h2 id="authTitle">Sign in</h2>
+      <label id="nameField" hidden>Display name <input id="authName" autocomplete="nickname" maxlength="24" /></label>
+      <label>Email <input id="authEmail" type="email" autocomplete="email" required /></label>
+      <label>Password <input id="authPassword" type="password" minlength="6" required /></label>
+      <p id="authError" class="error" role="alert"></p>
+      <div class="row">
+        <button id="authSubmit" class="btn-primary" type="submit">Sign in</button>
+        <button id="authSwitch" class="btn-soft" type="button">Create an account</button>
+        <button id="authCancel" class="btn-soft" type="button">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- POPUP: settings (music volume, sound effects volume, fullscreen). -->
+  <dialog id="settingsDialog" class="modal">
+    <h2>Settings</h2>
+    <label class="slider">Music <input id="musicVol" type="range" min="0" max="100" /></label>
+    <label class="slider">Sound effects <input id="sfxVol" type="range" min="0" max="100" /></label>
+    <label class="switch"><input id="fsToggle" type="checkbox" /> <span>Fullscreen</span></label>
+    <div class="row"><button type="button" id="settingsClose" class="btn-primary">Done</button></div>
+  </dialog>
+
+  <!-- POPUP: the rules of the game. -->
+  <dialog id="howDialog" class="modal wide">
+    <h2>How to play</h2>
+    <ul class="rules">
+      <li>Choose a country. Nine rivals are drawn at random. Starting soldiers depend on population.</li>
+      <li>From round 2 you receive 2 soldiers for every country you control and place them as you like.</li>
+      <li>Attack once per turn. You need 2 or more soldiers in the attacking country and always leave 1 behind.</li>
+      <li>Each side rolls one die per fighting soldier, paired in order. The higher die wins a soldier, ties change nothing.</li>
+      <li>Keep rolling until the country falls, you are down to 1 soldier, or you stop. Stopping ends your turn.</li>
+      <li>Conquering a country gains you Max(2, half its soldiers). Then choose how many more soldiers to move in.</li>
+      <li>You can move soldiers between your own countries when no attack is running, always leaving 1.</li>
+      <li>Lose every country and you are out. Conquer all ten nations to win.</li>
+      <li>Anyone with the game link can watch live, but only the signed-in owner can play.</li>
+    </ul>
+    <div class="row"><button type="button" id="howClose" class="btn-primary">Got it</button></div>
+  </dialog>
+
+  <!-- POPUP: short "how your game works" card shown once when a game starts. -->
+  <dialog id="introDialog" class="modal wide">
+    <h2>How your game works</h2>
+    <ol class="rules">
+      <li><b>The rivals move first.</b> Turn order is random, so you may watch a few rival turns before yours. Their moves and reasons appear in the game log. Nothing is needed from you yet.</li>
+      <li><b>When it is your turn</b>, a "Your turn" banner appears and the buttons under the battle scene become active. From round 2, place your new soldiers first.</li>
+      <li><b>To attack:</b> tap one of your countries, then an enemy country, press Attack, then press "Roll the dice!". Keep rolling or stop.</li>
+      <li>Prefer not to watch the rivals play ? Press "Skip ahead to my turn" at any time.</li>
+    </ol>
+    <div class="row"><button type="button" id="introStart" class="btn-primary">Start</button></div>
+  </dialog>
+
+  <!-- POPUP: victory / defeat. JavaScript fills in the title, text and buttons. -->
+  <dialog id="resultDialog" class="modal result">
+    <div id="resultIcon" class="result-icon" aria-hidden="true"></div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultText"></p>
+    <div class="row center" id="resultButtons"></div>
+  </dialog>
+
+  <!-- Small message that slides up from the bottom (errors, "link copied"). -->
+  <div id="toast" class="toast" role="status"></div>
+  <!-- Loads the app. type="module" lets the code use import / export. -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
