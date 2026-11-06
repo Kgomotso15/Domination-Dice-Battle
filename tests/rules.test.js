@@ -1,22 +1,20 @@
-// ============================================================================
-// rules.test.js
-// Automated tests. Run them with:  npm test
+// Automated tests. Ran with:  npm test
 // Each test() states one rule from the brief and checks the code obeys it.
-// `assert.equal(a, b)` fails the test if a and b are different.
-// ============================================================================
+// 'assert.equal(a, b)' fails the test if a and b are different.
+
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { conquestReward, diceCount, resolveRound, soldiersForPopulation } from '../js/engine/rules.js'
 import { Game, RuleError } from '../js/engine/Game.js'
 import { COUNTRIES } from '../js/data/countries.js'
 
-// A fake random-number source that returns the given values in turn (so dice rolls are predictable).
+// A fake random-number source that returns the given values in turn (so dice rolls are predictable)
 const seq = (...values) => { let i = 0; return () => values[i++ % values.length] }
 // rollDie = 1 + floor(rng*6), so these map to faces 1..6
 // Converts a die face (1-6) into the random number that makes rollDie() produce it.
 const face = (n) => (n - 1) / 6 + 0.01
 
-// Checks the population table: e.g. Vatican City = 1 soldier, India = 9.
+// Checks the population table: e.g. Vatican City = 1 soldier, India = 9
 test('soldier bands follow the brief', () => {
   assert.equal(soldiersForPopulation(506), 1)
   assert.equal(soldiersForPopulation(5_000_000), 1)
@@ -26,20 +24,20 @@ test('soldier bands follow the brief', () => {
   assert.equal(soldiersForPopulation(150_000_000), 8)
 })
 
-// The three dice-count examples written in the brief.
+// The three dice-count examples written in the brief
 test('dice count examples from the brief', () => {
   assert.equal(diceCount(10, 2), 2)
   assert.equal(diceCount(3, 5), 2)
   assert.equal(diceCount(2, 5), 1)
 })
 
-// India (value 9) gives 4, Vatican City (value 1) gives the minimum of 2.
+// India (value 9) gives 4, Vatican City (value 1) gives the minimum of 2
 test('conquest reward examples from the brief', () => {
   assert.equal(conquestReward(9), 4) // India
   assert.equal(conquestReward(1), 2) // Vatican City
 })
 
-// The brief's worked example: one pair lost, one pair won, so each side loses 1.
+// The brief's worked example: one pair lost, one pair won, so each side loses 1
 test('dice resolution example from the brief (1v2 and 4v3)', () => {
   // attacker 1, defender 2, attacker 4, defender 3  -> order of rolls: a1, d1, a2, d2
   const r = resolveRound(10, 2, seq(face(1), face(2), face(4), face(3)))
@@ -171,13 +169,13 @@ test('country picker search and soldier-band filter', () => {
 
 import { NpcStrategy } from '../js/engine/NpcStrategy.js'
 
-// AI generals cannot attack the human before the human's first turn.
-test('opening shield: AI never targets the human before the human has played', () => {
+// rivals cannot attack the human before the human's first turn.
+test('opening shield: Rival never targets the human before the human has played', () => {
   for (let i = 0; i < 40; i++) {
     const g = Game.create({ ownerUid: 'u', humanName: 'T', humanCode: 'ZA', countries: COUNTRIES })
     if (g.currentPlayer.id === 'p0') { assert.equal(g.state.openingShield, false); continue } // human goes first: nothing to shield
     assert.equal(g.state.openingShield, true)
-    // make the AI as strong as possible so the human would be an attractive target
+    // make the Rivals as strong as possible so the human would be an attractive target
     for (const c of g.countries) if (c.ownerId !== 'p0') c.soldiers = 9
     g.country('ZA').soldiers = 1
     while (g.currentPlayer.id !== 'p0') {
@@ -190,18 +188,18 @@ test('opening shield: AI never targets the human before the human has played', (
   }
 })
 
-test('AI players get unique faction names that never match a country on the board', () => {
+test('Rival players get unique faction names that never match a country on the board', () => {
   for (let i = 0; i < 30; i++) {
     const g = Game.create({ ownerUid: 'u', humanName: 'John', humanCode: 'FR', countries: COUNTRIES })
-    const ai = g.state.players.filter((p) => !p.isHuman)
-    assert.equal(new Set(ai.map((p) => p.name)).size, 9)
+    const rivals = g.state.players.filter((p) => !p.isHuman)
+    assert.equal(new Set(rivals.map((p) => p.name)).size, 9)
     const countryNames = new Set(g.countries.map((c) => c.name))
-    assert.ok(ai.every((p) => !countryNames.has(p.name) && !p.name.endsWith(' AI')))
+    assert.ok(rivals.every((p) => !countryNames.has(p.name) && !p.name.endsWith(' Rival')))
   }
 })
 
-// AI names must never be the same as a country name, and must all be different.
-test('AI generals have names that are not country names', () => {
+// Rivals must never be the same as a country name, and must all be different.
+test('Rivals have names that are not country names', () => {
   const g = newGame()
   const countryNames = new Set(COUNTRIES.map((c) => c.name))
   for (const p of g.state.players.filter((x) => !x.isHuman)) assert.ok(!countryNames.has(p.name), p.name)

@@ -1,12 +1,10 @@
-// ============================================================================
-// GameListView.js
 // A searchable, filterable list of games (used for "Your campaigns" and "Live games").
 // Expects a search box, a status dropdown and a <ul> inside the element it is given.
-// ============================================================================
+
 import { flagUrl } from '../data/countries.js'
 import { filterGames } from './gameFilter.js'
 
-// Makes text safe to put inside HTML.
+// Makes text safe to put inside HTML
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 export class GameListView {
@@ -16,17 +14,17 @@ export class GameListView {
     this.status = root.querySelector('select')                 // the status dropdown
     this.list = root.querySelector('ul')                       // where the rows go
     this.games = []                                            // all games received from the database
-    // Redraw the list whenever the player types or changes the dropdown.
+    // Redraw the list whenever the player types or changes the dropdown
     this.search.addEventListener('input', () => this.#render())
     this.status.addEventListener('change', () => this.#render())
   }
 
-  // Gives the list its data and draws it.
+  // Gives the list its data and draws it
   setGames(games) { this.games = games; this.#render() }
   // Shows a single message instead of games (for "Loading…" or errors).
   setMessage(text) { this.list.innerHTML = `<li class="empty">${esc(text)}</li>` }
 
-  // Draws the rows that match the current search and filter.
+  // Draws the rows that match the current search and filter
   #render() {
     const shown = filterGames(this.games, { query: this.search.value, status: this.status.value })
     // Nothing to show: say why.

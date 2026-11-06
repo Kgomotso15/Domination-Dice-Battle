@@ -1,8 +1,5 @@
-// ============================================================================
-// firebase.js
 // The one place where the Firebase SDK is started up. Every other file imports
 // `auth` and `db` from here instead of setting Firebase up again.
-// ============================================================================
 
 // Load the Firebase libraries straight from Google's CDN (no install or build step needed).
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'

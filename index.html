@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Domination - Dice Battle</title>
-  <meta name="description" content="Domination - Dice Battle. Your nation, your strategy. Your fate. A single-player world conquest dice game against AI generals." />
+  <meta name="description" content="Domination - Dice Battle. Your nation, your strategy. Your fate. A single-player world conquest dice game against rivals." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -54,13 +54,13 @@
   </header>
 
   <main>
-    <!-- Shown only if the Firebase config has not been filled in (see js/main.js). -->
+    <!-- Shown only if the Firebase config has not been filled in (see js/main.js) -->
     <section id="setupNotice" class="panel notice" hidden>
       <h1>Connect Firebase first</h1>
       <p>Open <code>js/config/firebase-config.js</code> and paste your Firebase web app config. The README walks through it step by step.</p>
     </section>
 
-    <!-- SCREEN 1: the title menu (Play / Watch / How to play / Settings). -->
+    <!-- SCREEN 1: the title menu (Play / Watch / How to play / Settings) -->
     <section id="menu" class="screen menu">
       <div class="hero">
         <svg class="soldier left" viewBox="0 0 100 140" aria-hidden="true"><use href="#soldier"/></svg>
@@ -80,7 +80,7 @@
       <p class="tagline">Your nation, your strategy. Your fate.</p>
     </section>
 
-    <!-- SCREEN 2: the command centre: two searchable, filterable lists of games. -->
+    <!-- SCREEN 2: the command centre: two searchable, filterable lists of games -->
     <section id="hub" class="screen" hidden>
       <div class="screen-head">
         <button type="button" id="hubBack" class="btn-soft">Back</button>
@@ -111,7 +111,7 @@
       </div>
     </section>
 
-    <!-- SCREEN 3: pick your country from all 196, with search and soldier-band filters. -->
+    <!-- SCREEN 3: pick your country from all 196, with search and soldier-band filters -->
     <section id="select" class="screen" hidden>
       <h1 class="center-title">Select your country</h1>
       <div class="picker-tools">
@@ -131,7 +131,7 @@
       </div>
     </section>
 
-    <!-- SCREEN 4: the game itself: battle scene and controls on the left, board and log on the right. -->
+    <!-- SCREEN 4: the game itself: battle scene and controls on the left, board and log on the right -->
     <section id="game" class="screen" hidden>
       <div class="game-head">
         <div>
@@ -147,7 +147,7 @@
 
       <div class="game-grid">
         <div class="left">
-          <!-- The battle panel: banners, canvas scene, VS sign, dice rows and commentary. -->
+          <!-- The battle panel: banners, canvas scene, VS sign, dice rows and commentary -->
           <div id="arenaPanel" class="arena-panel">
             <div class="hud">
               <div id="hudAttacker" class="side attacker"></div>
@@ -163,17 +163,17 @@
             </div>
             <p id="caption" class="caption" aria-live="polite"></p>
           </div>
-          <!-- Buttons for your turn. JavaScript fills this in (ControlsView.js). -->
+          <!-- Buttons for your turn. JavaScript fills this in (ControlsView.js) -->
           <div id="controls" class="controls panel"></div>
         </div>
 
         <div class="right">
-          <!-- The 10 players with their country and soldier totals (BoardView.js). -->
+          <!-- The 10 players with their country and soldier totals (BoardView.js) -->
           <ul id="players" class="players"></ul>
-          <!-- The 10 country cards with live soldier counts. -->
+          <!-- The 10 country cards with live soldier counts -->
           <div id="board" class="board"></div>
           <h2 class="log-title">Game log</h2>
-          <!-- The game log: every AI decision with its reason, every roll, every commentary line. -->
+          <!-- The game log: every AI decision with its reason, every roll, every commentary line -->
           <ol id="log" class="log-list" aria-live="polite"></ol>
         </div>
       </div>

@@ -1,8 +1,5 @@
-// ============================================================================
-// LogView.js
-// The scrolling game log. Every AI decision (with its reason), every dice roll
+// The scrolling game log. Every rival decision (with its reason), every dice roll
 // and every commentary line is added here, including during fast-forward.
-// ============================================================================
 
 // Makes text safe to put inside HTML.
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])

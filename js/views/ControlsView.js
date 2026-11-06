@@ -1,21 +1,18 @@
-// ============================================================================
-// ControlsView.js
 // The action panel under the battle scene. It only draws buttons and sends
 // every click to the controller; the Game class decides if a move is allowed.
 // What it shows depends on the situation: placing reinforcements, picking an
-// attack, rolling dice, waiting for the AI, watching as a visitor, or game over.
-// ============================================================================
+// attack, rolling dice, waiting for the rival, watching as a visitor, or game over.
 
-// Makes text safe to put inside HTML.
+// Makes text safe to put inside HTML
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 export class ControlsView {
-  // `root` = the panel element; `handlers` = functions to call when buttons are pressed.
+  // 'root' = the panel element; 'handlers' = functions to call when buttons are pressed.
   constructor(root, handlers) {
     this.root = root
     this.h = handlers
     this.alloc = {}       // soldiers the player has placed so far, e.g. { ZA: 2 }
-    this.allocKey = ''    // identifies the current reinforcement round, to reset `alloc` when it changes
+    this.allocKey = ''    // identifies the current reinforcement round, to reset 'alloc' when it changes
     // One click listener for the whole panel (event delegation).
     root.addEventListener('click', (e) => this.#click(e))
     // Typing in the "soldiers to move" box tells the controller the new number.
@@ -24,26 +21,26 @@ export class ControlsView {
     })
   }
 
-  // Redraws the panel. `mode` is 'play' (the owner) or 'watch' (a visitor).
+  // Redraws the panel. 'mode' is 'play' (the owner) or 'watch' (a visitor).
   render({ game, mode, selection, fast, thinking, moveCount, turnsUntil }) {
     const s = game.state
     const me = game.human
     let html = ''
 
     if (game.isFinished) {
-      // ---- Game over: show who won ----
+      // ----------------------------------- Game over: show who won -----------------------------------------
       const winner = game.player(s.winnerId)
       html = `<p class="banner ${winner.isHuman ? 'win' : 'lose'}">${
         winner.isHuman ? 'You conquered the world!' : `${esc(winner.name)} conquered the world.`}${
         s.endedByRoundLimit ? ' (Round limit reached: winner decided on countries and soldiers.)' : ''}</p>`
     } else if (mode === 'watch') {
-      // ---- A visitor watching: read-only ----
+      // ----------------------------------- A visitor watching: read-only -----------------------------------------
       html = `<p class="hint">You are watching this game live. ${game.currentPlayer.isHuman ? `${esc(game.currentPlayer.name)} is deciding.` : `${esc(game.currentPlayer.name)} is playing.`}</p>
         <button type="button" class="btn-primary" data-act="signin">Sign in to play your own game</button>`
     } else if (!game.currentPlayer.isHuman) {
-      // ---- An AI general is playing: the human just waits (or skips ahead) ----
-      const wait = turnsUntil === null ? '' : turnsUntil === 0 ? ' You are next.' : ` ${turnsUntil} more AI turn${turnsUntil === 1 ? '' : 's'} before yours.`
-      html = `<p class="hint"><b>Waiting for the AI generals.</b> ${esc(game.currentPlayer.name)} is playing${thinking ? '…' : '.'}${wait} Nothing is needed from you yet. Every AI decision and its reason appears in the log.</p>
+      // ----------------------------------- A rival general is playing: the human just waits (or skips ahead) -----------------------------------------
+      const wait = turnsUntil === null ? '' : turnsUntil === 0 ? ' You are next.' : ` ${turnsUntil} more Rival turn${turnsUntil === 1 ? '' : 's'} before yours.`
+      html = `<p class="hint"><b>Waiting for the rivals.</b> ${esc(game.currentPlayer.name)} is playing${thinking ? '…' : '.'}${wait} Nothing is needed from you yet. Every Rival decision and its reason appears in the log.</p>
         <button type="button" class="${fast ? 'btn-primary' : 'btn-soft'}" data-act="fast">${
           fast ? 'Skipping ahead. Tap to slow down' : 'Skip ahead to my turn'}</button>`
     } else {
@@ -61,7 +58,7 @@ export class ControlsView {
     const from = selection.from ? game.country(selection.from) : null
     const to = selection.to ? game.country(selection.to) : null
 
-    // ---- Phase 1: placing reinforcements ----
+    // ----------------------------------------- Phase 1: placing reinforcements -----------------------------------------
     if (s.phase === 'reinforce') {
       // Start with a clean allocation whenever a new reinforcement round begins.
       const key = `${s.round}:${s.reinforcePool}`
@@ -75,7 +72,7 @@ export class ControlsView {
         <button type="button" class="btn-primary" data-act="alloc-confirm" ${left ? 'disabled' : ''}>${left ? `Place ${left} more` : 'Confirm placement'}</button>`
     }
 
-    // ---- Phase 3: an attack is in progress ----
+    // ---------------------------------------- Phase 3: an attack is in progress -----------------------------------------
     if (s.phase === 'attack') {
       const a = game.country(s.attack.sourceCode)
       const d = game.country(s.attack.targetCode)
@@ -84,7 +81,7 @@ export class ControlsView {
         <button type="button" data-act="stop">Stop attack</button></div>`
     }
 
-    // ---- Phase 2 / 4: choosing an attack or moving soldiers ----
+    // ----------------------------------------- Phase 2 / 4: choosing an attack or moving soldiers -----------------------------------------
     // Attack needs: your country (2+ soldiers) selected first, an enemy second, and no attack used yet.
     const canAttack = s.phase === 'action' && from && to && from.ownerId === me.id && to.ownerId !== me.id && from.soldiers >= 2
     // Moving needs two of your own countries, with the source having at least 2 soldiers.

@@ -1,13 +1,11 @@
-// ============================================================================
-// GameController.js
-// Runs ONE game page. It connects the three layers together:
-//   Game (rules)  <->  GameController  <->  views (screen) and repository (database)
+// Runs one game page. It connects the three layers together:
+// Game (rules)  <->  GameController  <->  views (screen) and repository (database)
 //
 // It works in one of two modes:
 //   OWNER mode:   the signed-in owner "drives" the game. Human turns wait for button
-//                 clicks; AI turns are played automatically with short pauses.
+//                 clicks; rival turns are played automatically with short pauses.
 //   WATCH mode:   anyone else just follows the saved state and the event log live.
-// ============================================================================
+
 import { Game, RuleError } from '../engine/Game.js'
 import { NPC_PROFILES, NpcStrategy } from '../engine/NpcStrategy.js'
 import { CommentaryService } from '../services/CommentaryService.js'
@@ -20,7 +18,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 const FAST = 4
 
 export class GameController {
-  // `repo` = database, `commentary` = AI commentary, `screen` = the views, `toast` = shows a message.
+  // `repo` = database, `commentary` = rival commentary, `screen` = the views, `toast` = shows a message.
   constructor({ gameId, user, repo, commentary, screen, toast, requestSignIn }) {
     // Copy all the named arguments onto `this` in one go.
     Object.assign(this, { gameId, user, repo, commentary, screen, toast, requestSignIn })
@@ -29,7 +27,7 @@ export class GameController {
     this.driving = false        // true once the owner's game loop is running
     this.stopped = false        // true once the player has left this game page
     this.fast = false           // is "Skip ahead" on?
-    this.thinking = false       // is an AI general in the middle of a turn?
+    this.thinking = false       // is a rival general in the middle of a turn?
     this.selection = {}         // the countries the human has tapped: { from, to }
     this.moveCount = 1          // the "soldiers to move" number
     this.waiter = null          // the promise the loop is waiting on for the next human click
@@ -55,7 +53,7 @@ export class GameController {
     this.waiter?.reject(new Cancelled())
   }
 
-  // ------------------------------------------------------- UI -> controller ----
+  // ------------------------------------------------------- UI -> controller -----------------------------------------
 
   // A button press from the human. If the game loop is waiting for a command, give it this one.
   dispatch(cmd) {
@@ -104,7 +102,7 @@ export class GameController {
   // Redraws the screen.
   refresh() { this.#render() }
 
-  // ---------------------------------------------------- database -> controller ----
+  // ---------------------------------------------------- database -> controller ---------------------------------------------
 
   // Called every time the game document changes in the database.
   #onDoc(doc) {
@@ -154,7 +152,7 @@ export class GameController {
     else if (e.type === 'battle_end') b.end(e.data?.message ?? '')
   }
 
-  // ------------------------------------------------ game loop (owner only) ----
+  // ------------------------------------------------ game loop (owner only) ---------------------------------------------
 
   // The main loop: keeps playing turns until someone wins.
   async #drive() {
@@ -270,7 +268,7 @@ export class GameController {
     }
   }
 
-  // Plays a whole turn for an AI general, step by step, explaining every decision.
+  // Plays a whole turn for a rival general, step by step, explaining every decision.
   async #npcTurn(p) {
     const g = this.game
     const npc = new NpcStrategy(p.profile, this.rng)      // that general's brain
@@ -324,7 +322,7 @@ export class GameController {
       this.#commit('decision', verdict.reason, { actor: label, data: { kind: 'continue', go: verdict.continue } })
       await this.#pause(700)
       if (!verdict.continue) {
-        // The AI decided to withdraw: that ends its turn.
+        // The Rival decided to withdraw: that ends its turn.
         const text = `${p.name} withdraws from the attack. Turn ends.`
         g.stopAttack()
         this.#commit('battle_end', text, { state: true, data: { message: 'Attack called off' } })
@@ -333,7 +331,7 @@ export class GameController {
         return
       }
     }
-    // After a conquest the AI garrisons the new country (like a human choosing how many soldiers to move in).
+    // After a conquest the rival garrisons the new country (like a human choosing how many soldiers to move in).
     if (g.state.phase === 'postAttack' && last?.outcome === 'conquered') {
       const plan = npc.planGarrison(g, p.id, last.sourceCode, last.targetCode)
       if (plan) {
@@ -352,7 +350,7 @@ export class GameController {
     this.#render()
   }
 
-  // ---------------------------------------------------------------- battles ----
+  // --------------------------------------------------------- battles -----------------------------------------
 
   // Logs "X attacks Y" and opens the battle scene.
   #announceAttack(player, text, human) {
@@ -369,7 +367,7 @@ export class GameController {
     return { code: country.code, name: country.name, owner: this.game.player(country.ownerId).name, soldiers: country.soldiers }
   }
 
-  // Plays ONE round of the current attack (for the human or an AI), then shows and saves it.
+  // Plays ONE round of the current attack (for the human or the rival), then shows and saves it.
   async #playRound(player, human) {
     const g = this.game
     const a = g.state.attack
@@ -399,7 +397,7 @@ export class GameController {
     // For the human, save the state NOW (before the animation) so closing the tab cannot undo a bad roll.
     const event = this.#commit('battle_round', text, { actor: player.name, data, state: human, persist: human })
 
-    // The facts the AI commentator needs to describe THIS battle round.
+    // The facts the rival commentator needs to describe THIS battle round.
     const ctx = {
       attacker: src.name, defender: tgt.name, attackerProfile: data.attackerProfile, pairs: res.pairs,
       attackerLosses: res.attackerLosses, defenderLosses: res.defenderLosses,
@@ -422,7 +420,7 @@ export class GameController {
       // The round event was already saved; save the commentary as its own event.
       this.#commit('commentary', note.text, { data: { source: note.source } })
     } else {
-      // For AI rounds the commentary is stored inside the round event (one database write instead of two).
+      // For rival rounds the commentary is stored inside the round event (one database write instead of two).
       event.data.commentary = note.text
       event.data.commentarySource = note.source
       this.screen.log.add({ seq: `${event.seq}c`, type: 'commentary', text: note.text, data: { source: note.source } })
@@ -456,7 +454,7 @@ export class GameController {
     return res   // the NPC turn uses this to know how the battle ended
   }
 
-  // ------------------------------------------- events, saving and drawing ----
+  // ------------------------------------------- events, saving and drawing -------------------------------------------
 
   // Adds an event to the on-screen log and (optionally) saves it. Returns the event.
   #commit(type, text, { actor = null, data = {}, state = false, persist = true } = {}) {
@@ -515,7 +513,7 @@ export class GameController {
     })
   }
 
-  // How many AI turns will be played before the human's next turn (null if the human is out).
+  // How many rival turns will be played before the human's next turn (null if the human is out).
   #turnsUntilHuman() {
     const g = this.game
     const order = g.state.order
@@ -531,7 +529,7 @@ export class GameController {
     return null
   }
 
-  // A pause between AI steps; shorter when skipping ahead. Also checks the page was not left.
+  // A pause between rival steps; shorter when skipping ahead. Also checks the page was not left.
   async #pause(ms) {
     await wait(ms / (this.fast ? FAST : 1))
     if (this.stopped) throw new Cancelled()

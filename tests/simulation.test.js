@@ -1,9 +1,7 @@
-// ============================================================================
-// simulation.test.js
-// Plays 20 COMPLETE games where every player (including the human seat) is driven by
-// the AI. After every move it checks the rules still hold, and at the end that every
-// game finished with a valid winner. This catches bugs no single-rule test would find.
-// ============================================================================
+// Plays 20 COMPLETE games where every player (including the human seat) is driven by the NPC. 
+// After every move it checks the rules still hold, and at the end that every game finished with a valid winner. 
+// This catches bugs no single-rule test would find.
+
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { Game } from '../js/engine/Game.js'

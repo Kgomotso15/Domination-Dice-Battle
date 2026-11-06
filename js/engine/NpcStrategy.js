@@ -1,13 +1,10 @@
-// ============================================================================
-// NpcStrategy.js
-// The "brain" of the AI generals. It NEVER changes the game itself. It only
-// looks at the board and returns a plan plus a plain-English reason, which the
-// controller then applies through the Game class (so the AI obeys the same
-// rules as the human) and shows in the game log.
-// ============================================================================
+// The "brain" of the rival generals. It NEVER changes the game itself. It only looks at the board and returns a plan 
+// plus a plain-English reason, which the controller then applies through the Game class (so the rival obeys the same
+// rules as the human) and shows in the game log
+
 import { conquestReward, resolveRound } from './rules.js'
 
-// Three personalities. They share the same logic and differ only in these numbers.
+// Three personalities. They share the same logic and differ only in these numbers
 export const NPC_PROFILES = {
   aggressor: {
     label: 'Aggressor',
@@ -39,32 +36,32 @@ export const NPC_PROFILES = {
 const pct = (p) => `${Math.round(p * 100)}%`
 
 // Estimates the chance of conquering a country by simulating the whole attack many times
-// (a "Monte Carlo" estimate). It keeps rolling until the defender is out or the attacker hits 1.
+// (a "Monte Carlo" estimate). It keeps rolling until the defender is out or the attacker hits 1
 export function winProbability(attackerSoldiers, defenderSoldiers, sims = 300, rng = Math.random) {
-  // With fewer than 2 soldiers you cannot attack at all.
+  // With fewer than 2 soldiers you cannot attack at all
   if (attackerSoldiers < 2) return 0
   let wins = 0
-  // Run the attack `sims` times.
+  // Run the attack `sims` times
   for (let i = 0; i < sims; i++) {
     let a = attackerSoldiers
     let d = defenderSoldiers
-    // Keep fighting while the attacker has more than 1 soldier and the defender has some.
+    // Keep fighting while the attacker has more than 1 soldier and the defender has some
     while (a > 1 && d > 0) {
       const r = resolveRound(a, d, rng)
       a -= r.attackerLosses
       d -= r.defenderLosses
     }
-    // If the defender ran out of soldiers, that simulated attack was a win.
+    // If the defender ran out of soldiers, that simulated attack was a win
     if (d <= 0) wins++
   }
-  // The share of simulated attacks that won is our estimate of the chance.
+  // The share of simulated attacks that won is our estimate of the chance
   return wins / sims
 }
 
 export class NpcStrategy {
-  // `profileKey` is 'aggressor' | 'balanced' | 'defender'. `rng` can be faked in tests.
+  // `profileKey` is 'aggressor' | 'balanced' | 'defender'. `rng` can be faked in tests
   constructor(profileKey, rng = Math.random) {
-    // Fall back to "balanced" if the key is unknown.
+    // Fall back to "balanced" if the key is unknown
     this.profile = NPC_PROFILES[profileKey] ?? NPC_PROFILES.balanced
     this.rng = rng
   }
@@ -72,7 +69,7 @@ export class NpcStrategy {
   // Decides where to place this turn's new soldiers.
   planReinforcements(game, playerId) {
     const pool = game.state.reinforcePool          // how many soldiers to place
-    const owned = game.ownedBy(playerId)           // the countries this AI owns
+    const owned = game.ownedBy(playerId)           // the countries this Rival owns
     const allocations = {}                         // result, e.g. { FR: 4 }
     const sim = Object.fromEntries(owned.map((c) => [c.code, c.soldiers])) // working copy of counts
     // Gives one soldier to a country (in the plan only; the real change happens later).
@@ -87,7 +84,7 @@ export class NpcStrategy {
     while (left > 0 && sim[weakest()] < floor) { give(weakest()); left-- }
     const secured = pool - left
 
-    // Step 2: the rest follows this personality's style.
+    // Step 2: the rest follows this personality's style
     let style
     if (this.profile.reinforce === 'concentrate') {
       // Put everything left into the country that already has the most soldiers.
@@ -112,16 +109,16 @@ export class NpcStrategy {
     return Math.ceil(biggestEnemy * 0.6)
   }
 
-  // Decides whether to move spare soldiers into the strongest country before attacking.
+  // Decides whether to move spare soldiers into the strongest country before attacking
   planConsolidation(game, playerId) {
-    // Sort the AI's countries from most to fewest soldiers.
+    // Sort the Rival's countries from most to fewest soldiers
     const owned = [...game.ownedBy(playerId)].sort((a, b) => b.soldiers - a.soldiers)
-    // With only one country there is nothing to move.
+    // With only one country there is nothing to move
     if (owned.length < 2) return null
     const [strongest, ...rest] = owned
-    // Each other country keeps at least its personality's reserve AND the safe floor.
+    // Each other country keeps at least its personality's reserve AND the safe floor
     const keep = Math.max(this.profile.reserve, this.#safeFloor(game, playerId))
-    // Every other country with more than that gives the extra to the strongest.
+    // Every other country with more than that gives the extra to the strongest
     const moves = rest
       .filter((c) => c.soldiers > keep)
       .map((c) => ({ from: c.code, to: strongest.code, count: c.soldiers - keep }))
@@ -133,41 +130,41 @@ export class NpcStrategy {
     }
   }
 
-  // Looks at every possible attack and picks the best one (or decides to skip).
+  // Looks at every possible attack and picks the best one (or decides to skip)
   chooseAttack(game, playerId) {
     // Only countries with 2+ soldiers can attack.
     const owned = game.ownedBy(playerId).filter((c) => c.soldiers >= 2)
-    // While the opening shield is up, AI generals may not attack the human.
+    // While the opening shield is up, rival generals may not attack the human.
     const shielded = (c) => game.state.openingShield && game.player(c.ownerId).isHuman
-    // Possible targets: every country not owned by this AI (and not shielded).
+    // Possible targets: every country not owned by this rival (and not shielded)
     const enemies = game.countries.filter((c) => c.ownerId !== playerId && !shielded(c))
     let best = null     // best option that meets this personality's minimum odds
     let bestAny = null  // best option overall (used to explain a skipped turn)
 
-    // Try every (my country, enemy country) pair.
+    // Try every (my country, enemy country) pair
     for (const src of owned) {
       for (const tgt of enemies) {
-        // Chance of conquering this target from this source.
+        // Chance of conquering this target from this source
         const p = winProbability(src.soldiers, tgt.soldiers, 150, this.rng)
-        // The reward uses the target's ORIGINAL soldier value, matching the real rule.
+        // The reward uses the target's ORIGINAL soldier value, matching the real rule
         const reward = conquestReward(tgt.baseSoldiers)
-        // How many countries the target's owner has (fewer = easier to knock out).
+        // How many countries the target's owner has (fewer = easier to knock out)
         const ownerCountries = game.ownedBy(tgt.ownerId).length
         const eliminates = ownerCountries === 1
         // How attractive the target is: the reward, +2 for the extra income every new country
-        // brings, a big bonus for eliminating a rival, and a small bonus for focusing on small rivals.
+        // brings, a big bonus for eliminating a rival, and a small bonus for focusing on small rivals
         const value = reward + 2 + (eliminates ? 4 : 0) + 3 / ownerCountries
-        // Expected gain minus a penalty for the soldiers likely lost if the attack fails.
+        // Expected gain minus a penalty for the soldiers likely lost if the attack fails
         const score = p * value - (1 - p) * (src.soldiers - 1) * 0.25
         const option = { source: src, target: tgt, winProb: p, reward, eliminates, score }
         // Remember the best overall option...
         if (!bestAny || score > bestAny.score) bestAny = option
-        // ...and the best option that is good enough for this personality.
+        // ...and the best option that is good enough for this personality
         if (p >= this.profile.minWin && (!best || score > best.score)) best = option
       }
     }
 
-    // Nothing good enough: skip the attack and explain why.
+    // Nothing good enough: skip the attack and explain why
     if (!best) {
       if (!bestAny) return { attack: null, reason: 'No country has 2 or more soldiers, so there is nothing to attack with.' }
       return {
@@ -175,7 +172,7 @@ export class NpcStrategy {
         reason: `Best option was ${bestAny.source.name} (${bestAny.source.soldiers}) vs ${bestAny.target.name} (${bestAny.target.soldiers}) at only ${pct(bestAny.winProb)}. The ${this.profile.label} profile needs ${pct(this.profile.minWin)}, so it skips the attack.`
       }
     }
-    // Otherwise attack, and explain the choice.
+    // Otherwise attack, and explain the choice
     const { source: s, target: t } = best
     const extras = [best.eliminates ? `it would knock ${game.player(t.ownerId).name} out of the game` : null].filter(Boolean)
     return {
@@ -184,15 +181,15 @@ export class NpcStrategy {
     }
   }
 
-  // After conquering a country, decides how many soldiers to move into it from the attacking
-  // country. A fresh conquest only holds the 2-soldier reward, so without this it would be
-  // retaken immediately and the two sides would just trade the same countries back and forth.
+  // After conquering a country, decides how many soldiers to move into it from the attacking country 
+  // A fresh conquest only holds the 2-soldier reward, so without this it would be retaken immediately 
+  // and the two sides would just trade the same countries back and forth
   planGarrison(game, playerId, sourceCode, targetCode) {
     const src = game.country(sourceCode)
     const tgt = game.country(targetCode)
-    // Both countries must belong to this AI (the conquest must have succeeded).
+    // Both countries must belong to this rival (the conquest must have succeeded)
     if (!src || !tgt || src.ownerId !== playerId || tgt.ownerId !== playerId) return null
-    // Even the two out: move half of the difference (rounded down).
+    // Even the two out: move half of the difference (rounded down)
     const count = Math.floor((src.soldiers - tgt.soldiers) / 2)
     if (count < 1) return null
     return {
@@ -203,12 +200,12 @@ export class NpcStrategy {
     }
   }
 
-  // After each round of an attack, decides whether to keep going or withdraw.
+  // After each round of an attack, decides whether to keep going or withdraw
   decideContinue(game) {
     const { sourceCode, targetCode } = game.state.attack
     const a = game.country(sourceCode).soldiers
     const d = game.country(targetCode).soldiers
-    // Re-estimate the odds from the CURRENT soldier counts.
+    // Re-estimate the odds from the CURRENT soldier counts
     const p = winProbability(a, d, 250, this.rng)
     if (p >= this.profile.stopBelow) {
       return { continue: true, winProb: p, reason: `Odds are still ${pct(p)} at ${a} vs ${d}, above the ${pct(this.profile.stopBelow)} cut-off. Pressing on.` }

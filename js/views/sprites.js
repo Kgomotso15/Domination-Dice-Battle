@@ -1,12 +1,8 @@
-// ============================================================================
-// sprites.js
-// Sprite and Fighter classes adapted from the ORIGINAL fighting game.
 // A "sprite" is a picture made of several frames side by side in one image
 // (a sprite sheet). Showing the frames one after another makes an animation.
 // The keyboard controls, gravity and hit boxes from the old game are gone:
 // fighters now just play scripted animations (idle, attack, take hit, death)
 // that the Arena starts once per pair of dice.
-// ============================================================================
 
 // A drawable picture, optionally animated.
 export class Sprite {

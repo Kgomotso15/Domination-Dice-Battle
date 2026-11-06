@@ -1,8 +1,6 @@
-// ============================================================================
-// BoardView.js
 // Draws the strip of players and the grid of the 10 countries. Both are always
 // visible during a game and always show live soldier counts.
-// ============================================================================
+
 import { flagUrl } from '../data/countries.js'
 import { NPC_PROFILES } from '../engine/NpcStrategy.js'
 
@@ -10,8 +8,8 @@ import { NPC_PROFILES } from '../engine/NpcStrategy.js'
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 export class BoardView {
-  // `boardEl` = where the country cards go, `playersEl` = where the player chips go,
-  // `onPick(code)` = called when a country card is clicked.
+  // 'boardEl' = where the country cards go, 'playersEl' = where the player chips go,
+  // 'onPick(code)' = called when a country card is clicked.
   constructor(boardEl, playersEl, onPick) {
     this.boardEl = boardEl
     this.playersEl = playersEl
@@ -24,16 +22,16 @@ export class BoardView {
   }
 
   // Redraws everything from the current game state.
-  // `selection` = { from, to } country codes; `interactive` = can the human click cards now?
+  // 'selection' = { from, to } country codes; 'interactive' = can the human click cards now?
   render(game, { selection = {}, interactive = false } = {}) {
     const s = game.state
     const current = game.currentPlayer.id   // whose turn it is
 
-    // ---- The player strip ----
+    // -------------------------------------------------- The player strip --------------------------------------------------
     this.playersEl.innerHTML = s.players.map((p) => {
       const owned = game.ownedBy(p.id)
       const soldiers = owned.reduce((n, c) => n + c.soldiers, 0)
-      // Humans get the tag "You"; AI generals show their personality (Aggressor, Balanced, Defender).
+      // Humans get the tag "You"; rival generals show their personality (Aggressor, Balanced, Defender).
       const tag = p.isHuman ? 'You' : NPC_PROFILES[p.profile]?.label ?? ''
       // CSS classes: dim eliminated players, highlight the player whose turn it is.
       const cls = [p.eliminated ? 'out' : '', p.id === current && !game.isFinished ? 'turn' : ''].join(' ')
@@ -42,7 +40,7 @@ export class BoardView {
         <em>${p.eliminated ? 'eliminated' : `${owned.length} countries, ${soldiers} soldiers`}</em></li>`
     }).join('')
 
-    // ---- The country cards ----
+    // -------------------------------------------------- The country cards --------------------------------------------------
     // Show the human's countries first, then group the rest by owner.
     const order = [...game.countries].sort((a, b) =>
       (game.player(a.ownerId).isHuman ? -1 : 0) - (game.player(b.ownerId).isHuman ? -1 : 0) ||

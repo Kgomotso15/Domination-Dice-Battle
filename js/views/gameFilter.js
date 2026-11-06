@@ -1,8 +1,5 @@
-// ============================================================================
-// gameFilter.js
 // Two small PURE functions (numbers/lists in, list out) that power the search
 // boxes and filters. They live apart from the screens so they can be unit tested.
-// ============================================================================
 
 // Filters the list of games by a search word and a status ('all' | 'active' | 'finished').
 export function filterGames(games, { query = '', status = 'all' } = {}) {
@@ -14,7 +11,7 @@ export function filterGames(games, { query = '', status = 'all' } = {}) {
     if (status === 'active' && finished) return false
     // No search text: keep everything that passed the status filter.
     if (!q) return true
-    // Otherwise the search word must appear in the country name or the owner's name.
+    // Otherwise the search word must appear in the country name or the owner's name
     return `${g.humanCountry ?? ''} ${g.ownerName ?? ''}`.toLowerCase().includes(q)
   })
 }

@@ -1,7 +1,6 @@
-// ============================================================================
-// main.js
+
 // The entry point: the first JavaScript file the page loads (see index.html).
-// ============================================================================
+
 import { isFirebaseConfigured } from './config/firebase-config.js'
 
 if (!isFirebaseConfigured) {

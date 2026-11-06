@@ -1,9 +1,7 @@
-// ============================================================================
-// Arena.js
 // The canvas battle scene from the original fighting game, reused as a stage for
 // the dice battles. The attacker (samurai) and defender (Kenji) fight one little
 // duel for every pair of dice.
-// ============================================================================
+
 import { Sprite, createKenji, createSamurai } from './sprites.js'
 
 // Waits for `ms` milliseconds.

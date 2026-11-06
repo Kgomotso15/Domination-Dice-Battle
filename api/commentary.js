@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization || '').replace(/^Bearer /, '')
   if (!token || !(await verifyFirebaseUser(token))) return res.status(401).json({ error: 'Sign in first' })
 
-  // Never trust what the browser sends: clean every field before using it.
+  // clean every field before using it.
   const b = req.body || {}
   const facts = {
     attacker: str(b.attacker),
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     reward: int(b.reward)
   }
 
-  // The instruction given to the AI. It contains the REAL battle facts, so the
+  // The instruction given to the rival. It contains the REAL battle facts, so the
   // commentary describes what actually happened.
   const prompt =
     `You are the excitable live commentator of a Risk-style world conquest game. ` +
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        // A generous length cap: some Gemini models use part of the budget on internal reasoning.
+        //length cap
         generationConfig: { maxOutputTokens: 400, temperature: 0.9 }
       })
     })

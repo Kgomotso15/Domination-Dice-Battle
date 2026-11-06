@@ -1,15 +1,13 @@
-// ============================================================================
-// GameRepository.js
-// The ONLY file that talks to the Firestore database. Game rules live in the
-// engine; screens live in the views; saving and loading lives here. Keeping
-// these apart means the database could be swapped without touching the game.
+// The only file that talks to the Firestore database. Game rules live in the engine; 
+// screens live in the views; saving and loading lives here. 
+// Keeping these apart means the database could be swapped without touching the game.
 //
 // Firestore layout (NoSQL: collections of documents):
 //   users/{uid}                    one profile document per user
 //   games/{gameId}                 summary fields + the full game `state`
 //   games/{gameId}/events/{id}     an append-only log: decisions, dice rolls, commentary
-// Anyone can READ games and events; only the owner can WRITE (see firestore.rules).
-// ============================================================================
+// Anyone can read games and events; only the owner can write 
+
 import {
   addDoc, collection, doc, getDocs, limit, onSnapshot, orderBy, query,
   serverTimestamp, setDoc, where, writeBatch
@@ -56,8 +54,7 @@ export class GameRepository {
     return ref.id
   }
 
-  // Saves the new state and (optionally) one log event in ONE atomic write:
-  // either both are saved or neither is.
+  // Saves the new state and (optionally) one log event in ONE atomic write: either both are saved or neither is
   async save(gameId, state, event = null) {
     const batch = writeBatch(db)
     batch.update(doc(db, 'games', gameId), { ...summary(state), state: clean(state), updatedAt: serverTimestamp() })
@@ -67,13 +64,13 @@ export class GameRepository {
     await batch.commit()
   }
 
-  // Adds one log event without touching the game state.
+  // Adds one log event without touching the game state
   async addEvent(gameId, event) {
     await addDoc(collection(db, 'games', gameId, 'events'), { ...clean(event), ts: serverTimestamp() })
   }
 
   // Live updates of one game. Used by the owner (to resume) and by anyone watching a shared link.
-  // Returns a function that stops the subscription.
+  // Returns a function that stops the subscription
   subscribeGame(gameId, onData, onError) {
     return onSnapshot(doc(db, 'games', gameId), (snap) => onData(snap.exists() ? { id: snap.id, ...snap.data() } : null), onError)
   }

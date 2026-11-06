@@ -1,20 +1,18 @@
-// ============================================================================
-// CommentaryService.js
 // Produces the live battle commentary. It asks our server function
 // (/api/commentary), which calls the Gemini AI. If that server is unreachable or
 // slow, it falls back to local template sentences so the game never stalls.
-// ============================================================================
+
 export class CommentaryService {
-  // `getToken` is a function that returns the signed-in user's login token.
+  // 'getToken' is a function that returns the signed-in user's login token.
   constructor(getToken) {
     this.getToken = getToken
   }
 
-  // Returns { text, source } where source is 'ai' (from Gemini) or 'local' (fallback template).
+  // Returns { text, source } where source is 'Rival' (from Gemini) or 'local' (fallback template).
   async generate(ctx, { timeoutMs = 4000 } = {}) {
     try {
       const token = await this.getToken()
-      // Only signed-in players may use the AI.
+      // Only signed-in players may use .
       if (!token) throw new Error('not signed in')
       // An AbortController lets us cancel the request if it takes too long.
       const controller = new AbortController()
@@ -38,7 +36,7 @@ export class CommentaryService {
     }
   }
 
-  // Builds a sentence from the real battle facts (used only when the AI is unavailable).
+  // Builds a sentence from the real battle facts.
   static template(c) {
     // Picks one of several sentences so the commentary is not identical every time.
     const pick = (list) => list[(c.round + c.attackerLosses * 3 + c.defenderLosses) % list.length]

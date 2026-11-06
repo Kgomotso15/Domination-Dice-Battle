@@ -1,9 +1,9 @@
-/* ============================================================================
-   styles.css : the look of the whole game ("pink luxury" theme)
-   Palette: Blush #F7B8D0, Rose #E85D9E, Purple #8B4BC2, Plum #301746, Pearl #F8E9F0
+/* 
+   Game theme: pink luxury
+   Palette used: Blush #F7B8D0, Rose #E85D9E, Purple #8B4BC2, Plum #301746, Pearl #F8E9F0
    How CSS reads: `selector { property: value; }` means "elements matching the
    selector get these styles". Classes start with a dot (.card), ids with # (#log).
-   ============================================================================ */
+  */
 
 /* ---- Colour and font variables. Use them anywhere with var(--name). ---- */
 :root {
@@ -23,7 +23,7 @@
   --body: 'Jost', system-ui, sans-serif;            /* clean body text */
 }
 
-/* Make width/height include padding and borders, which is far easier to reason about. */
+/* width/height include padding and borders */
 * { box-sizing: border-box; }
 
 /* The page background: soft pink and purple glows on deep plum, with a faint sparkle grid. */
@@ -51,7 +51,7 @@ code { background: rgba(0, 0, 0, 0.3); padding: 0.1em 0.35em; border-radius: 4px
 /* The `hidden` attribute must always win, even over display rules set below. */
 [hidden] { display: none !important; }
 
-/* ---- Buttons ---- */
+/* -------------------------------------- BUTTONS -------------------------- */
 /* Shared base look for every button. */
 button, .btn-soft, .btn-primary {
   font: 500 0.95rem var(--body);
@@ -86,11 +86,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 /* A clear ring around whatever is focused with the keyboard (accessibility). */
 :focus-visible { outline: 3px solid var(--blush); outline-offset: 2px; }
 
-/* ---- Form fields ---- */
+/* ---------------------------------------------------- FORM FIELDS -------------------------------------- */
 input, select { font: 400 1rem var(--body); background: rgba(26, 11, 43, 0.8); color: var(--pearl); border: 1px solid rgba(247, 184, 208, 0.4); border-radius: 10px; padding: 0.55rem 0.8rem; min-width: 0; }
 input[type=range] { padding: 0; accent-color: var(--rose); width: 100%; }
 
-/* ---- Panels: frosted-glass cards ---- */
+/* --------------------------------------- Panels: frosted-glass cards ----------------------------------- */
 .panel {
   background: linear-gradient(180deg, rgba(90, 46, 125, 0.55), rgba(48, 23, 70, 0.85));
   border: 1px solid rgba(247, 184, 208, 0.3);
@@ -100,7 +100,7 @@ input[type=range] { padding: 0; accent-color: var(--rose); width: 100%; }
 }
 .notice { max-width: 640px; margin: 3rem auto; }
 
-/* ---- Top bar ---- */
+/* ------------------------------------------------ TOP BAR --------------------------------------------- */
 .top { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem clamp(1rem, 3vw, 2rem); border-bottom: 1px solid rgba(247, 184, 208, 0.2); background: rgba(26, 11, 43, 0.6); backdrop-filter: blur(6px); }
 .brand { font: 600 1.05rem var(--display); text-transform: uppercase; letter-spacing: 0.12em; color: var(--pearl); text-decoration: none; }
 .brand b { color: var(--rose); font-weight: 600; }
@@ -108,7 +108,7 @@ input[type=range] { padding: 0; accent-color: var(--rose); width: 100%; }
 .user button { padding: 0.4rem 0.9rem; font-size: 0.78rem; }
 main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 
-/* ---- Loading overlay ---- */
+/* ------------------------------------------- LOADING OVERLAY ------------------------------------- */
 .loading { position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; gap: 0.8rem; background: var(--plum-deep); transition: opacity 0.35s; }
 .loading.done { opacity: 0; pointer-events: none; }   /* JavaScript adds "done" to fade it away */
 .globe { width: 90px; fill: none; stroke: var(--rose); stroke-width: 2; animation: spin 6s linear infinite; filter: drop-shadow(0 0 8px var(--rose)); }
@@ -118,7 +118,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
 @keyframes spin { to { transform: rotateY(360deg); } }
 
-/* ---- Menu screen ---- */
+/* --------------------------------------------- MENU SCREEN -------------------------------------------- */
 .menu { position: relative; min-height: calc(100vh - 8rem); display: grid; align-content: center; overflow: hidden; border-radius: 20px; }
 /* Three columns: left silhouette, centre title and buttons, right silhouette. */
 .hero { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr minmax(300px, 1.1fr) 1fr; align-items: end; gap: 1rem; padding: 2rem 1rem 6rem; }
@@ -140,7 +140,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .menu::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 100%, rgba(232, 93, 158, 0.3), transparent), radial-gradient(40% 60% at 0% 40%, rgba(139, 75, 194, 0.3), transparent); }
 .tagline { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0.8rem; margin: 0; text-align: center; font: italic 600 clamp(1rem, 2.4vw, 1.6rem) var(--display); letter-spacing: 0.1em; text-transform: uppercase; text-shadow: 0 0 14px rgba(0, 0, 0, 0.9); }
 
-/* ---- Command centre ---- */
+/* --------------------------------------------- COMMAND CENTRE -------------------------------------------- */
 .screen-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
 .screen-head h1 { margin: 0; }
 .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; align-items: start; }
@@ -157,7 +157,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .games .chip.lost { background: rgba(232, 93, 158, 0.25); color: var(--blush); }
 .games .empty { color: var(--muted); padding: 0.6rem; }
 
-/* ---- Country picker ---- */
+/* --------------------------------------------- COUNTRY PICKER -------------------------------------------- */
 .center-title { text-align: center; }
 .picker-tools { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
 .picker-tools input { width: min(340px, 100%); }
@@ -175,7 +175,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .picker-bar { display: flex; gap: 0.8rem; align-items: center; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }
 .picker-bar .info { margin: 0 auto 0 0; padding: 0.5rem 1rem; border: 1px solid rgba(247, 184, 208, 0.3); border-radius: 99px; background: rgba(26, 11, 43, 0.6); }
 
-/* ---- Game page header and layout ---- */
+/* ----------------------------------------- Game page header and layout ------------------------------------ */
 .game-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
 .head-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
 .head-actions .btn-soft { padding: 0.45rem 1rem; font-size: 0.8rem; }
@@ -184,7 +184,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 /* Two columns: battle + controls on the left, board + log on the right. */
 .game-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
 
-/* ---- Battle panel ---- */
+/* -------------------------------------------- BATTLE PANEL ------------------------------------------------- */
 .arena-panel { position: relative; border: 1px solid var(--blush); border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 0 36px rgba(232, 93, 158, 0.3); }
 #arena { display: block; width: 100%; height: auto; image-rendering: pixelated; }  /* pixelated keeps the pixel art crisp */
 /* The banners and round badge sit on top of the scene; hidden until a battle is "live". */
@@ -215,7 +215,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .dice { display: flex; flex-wrap: wrap; gap: 0.35rem; max-width: 46%; }
 .dice:last-child { justify-content: flex-end; }
 
-/* ---- Dice with dots (pips) ---- */
+/* ------------------------------------------- Dice with dots (pips) --------------------------------------- */
 /* Each die is a 3x3 grid holding 9 hidden dots; the rules below reveal the right ones for 1-6. */
 .die { width: 2.7rem; height: 2.7rem; padding: 0.3rem; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); background: linear-gradient(145deg, #fff, var(--pearl) 60%, #e6c8d8); border: 2px solid var(--plum); border-radius: 10px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45); }
 .die i { width: 100%; height: 100%; border-radius: 50%; background: var(--plum); transform: scale(0.7); opacity: 0; }
@@ -233,14 +233,14 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .die.now { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--blush), 0 0 18px var(--rose); } /* the pair being fought */
 @keyframes shake { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
 
-/* ---- Commentary line ---- */
+/* --------------------------------------------- COMMENTARY LINE -------------------------------------------- */
 .caption { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; min-height: 3.4rem; padding: 0.6rem 1rem; background: rgba(26, 11, 43, 0.92); border-top: 1px solid var(--blush); font-style: italic; z-index: 2; }
 .caption:empty { visibility: hidden; }
 /* A small label saying where the commentary came from. */
-.caption[data-source="ai"]::before { content: 'AI commentator: '; font-style: normal; color: var(--blush); font-weight: 600; }
+.caption[data-source="Rival"]::before { content: 'Rival commentator: '; font-style: normal; color: var(--blush); font-weight: 600; }
 .caption[data-source="local"]::before { content: 'Commentary: '; font-style: normal; color: var(--muted); }
 
-/* ---- Controls panel ---- */
+/* ----------------------------------------------- Controls panel ----------------------------------------------- */
 .controls { margin-top: 1rem; display: grid; gap: 0.8rem; }
 .controls .hint { margin: 0; }
 .row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
@@ -260,7 +260,7 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .banner.win { background: rgba(143, 227, 192, 0.18); border: 1px solid var(--win); }
 .banner.lose { background: rgba(232, 93, 158, 0.2); border: 1px solid var(--rose); }
 
-/* ---- Players strip and country board ---- */
+/* --------------------------------------------- Players strip and country board -------------------------------------------- */
 .players { list-style: none; padding: 0; margin: 0 0 0.8rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.4rem; }
 .players li { --c: #999; display: grid; grid-template-columns: auto 1fr; column-gap: 0.5rem; align-items: center; padding: 0.35rem 0.6rem; border-radius: 12px; background: rgba(26, 11, 43, 0.65); border: 1px solid rgba(247, 184, 208, 0.18); font-size: 0.85rem; }
 .players i { width: 0.8rem; height: 0.8rem; border-radius: 50%; background: var(--c); grid-row: span 3; box-shadow: 0 0 8px var(--c); }  /* the player's colour dot */
@@ -284,20 +284,20 @@ main { padding: clamp(1rem, 3vw, 2rem); max-width: 1500px; margin: 0 auto; }
 .country.changed .n { animation: bump 0.5s; }                                    /* number pulses when it changes */
 @keyframes bump { 40% { transform: scale(1.6); color: var(--blush); } }
 
-/* ---- Game log ---- */
+/* ------------------------------------------------ GAME LOG ------------------------------------------ */
 .log-title { margin-top: 1.2rem; }
 .log-list { list-style: none; margin: 0; padding: 0.4rem; height: 360px; overflow-y: auto; background: rgba(26, 11, 43, 0.65); border: 1px solid rgba(247, 184, 208, 0.2); border-radius: 14px; display: grid; align-content: start; gap: 0.3rem; }
 .log { display: grid; grid-template-columns: 7rem 1fr; gap: 0.6rem; padding: 0.35rem 0.5rem; border-left: 3px solid transparent; font-size: 0.88rem; }
 .log p { margin: 0; }
 .log .tag { color: var(--muted); font: 500 0.78rem var(--body); letter-spacing: 0.1em; text-transform: uppercase; padding-top: 0.1rem; }
-.log.decision { border-left-color: var(--blush); background: rgba(247, 184, 208, 0.08); }   /* AI decisions stand out */
+.log.decision { border-left-color: var(--blush); background: rgba(247, 184, 208, 0.08); }   /* Rival decisions stand out */
 .log.decision .tag { color: var(--blush); }
 .log.battle_round { color: #e5d3ee; }
 .log.commentary p { font-style: italic; }
 .log.battle_end { border-left-color: var(--rose); }
 .log b { color: #fff; }
 
-/* ---- Popups (dialogs) ---- */
+/* ---------------------------------------------- Popups (dialogs) --------------------------------- */
 dialog.modal { background: linear-gradient(180deg, var(--plum-mid), var(--plum)); color: var(--pearl); border: 1px solid var(--blush); border-radius: 20px; padding: 1.5rem; width: min(92vw, 400px); box-shadow: 0 0 50px rgba(232, 93, 158, 0.35); }
 dialog.modal.wide { width: min(92vw, 560px); }
 dialog.modal::backdrop { background: rgba(26, 11, 43, 0.8); backdrop-filter: blur(4px); }   /* dims and blurs the page behind */
@@ -321,11 +321,11 @@ dialog.result.defeat h2 { color: var(--blush); text-shadow: 0 0 20px rgba(232, 9
 .result.victory .result-icon svg { fill: #ffd98a; }
 .result.defeat .result-icon svg { fill: var(--blush); }
 
-/* ---- Toast message ---- */
+/* --------------------------------------------- Toast message -------------------------------------------- */
 .toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translate(-50%, 200%); opacity: 0; pointer-events: none; background: var(--pearl); color: var(--plum); padding: 0.7rem 1.2rem; border-radius: 99px; max-width: min(92vw, 520px); transition: transform 0.25s, opacity 0.25s; z-index: 60; font-weight: 500; }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-/* ---- Small screens (phones and narrow windows) ---- */
+/* --------------------------------------------- Small screens (phones and narrow windows) -------------------------------------------- */
 @media (max-width: 1000px) {
   .hub-grid, .game-grid { grid-template-columns: 1fr; }          /* stack the columns */
   .hero { grid-template-columns: 1fr; padding-bottom: 5rem; }

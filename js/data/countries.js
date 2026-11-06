@@ -1,6 +1,6 @@
 // Source: https://www.worldometers.info/world-population/population-by-country/ (2026 estimates, UN WPP 2024).
 // Sovereign states only (plus Vatican City/Holy See, Palestine and Taiwan, which Worldometer lists as countries).
-// Format per line: ISO-3166 alpha-2 | name | population
+
 const RAW = `
 IN|India|1476625576
 CN|China|1412914089
@@ -200,7 +200,7 @@ TV|Tuvalu|9362
 VA|Vatican City|506
 `
 
-// Turn the big text block above into a list of objects like { code: 'ZA', name: 'South Africa', population: 65453084 }.
+// Turns the big text block above into a list of objects like { code: 'ZA', name: 'South Africa', population: 65453084 }.
 export const COUNTRIES = RAW.trim()          // remove the blank lines at the start and end
   .split('\n')                               // one entry per line
   .map((line) => {

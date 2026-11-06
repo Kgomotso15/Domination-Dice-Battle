@@ -1,13 +1,11 @@
-// ============================================================================
-// BattleView.js
 // The battle panel: the two country banners (flag, name, health bar, soldier
 // icons), the dice, the canvas arena and the commentary line underneath.
-// It only DISPLAYS what it is told; the real fight happens in Game.js.
-// ============================================================================
+// It only displays what it is told; the real fight happens in Game.js.
+
 import { flagUrl } from '../data/countries.js'
 import { Arena } from './Arena.js'
 
-// Waits for `ms` milliseconds.
+// Waits for ms milliseconds.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 // At most this many little soldier icons are drawn per side.
 const MAX_ICONS = 12
@@ -111,14 +109,14 @@ export class BattleView {
     this.root.classList.remove('live')
   }
 
-  // Sets the commentary text. `source` is 'ai' or 'local' (CSS shows a label for each).
+  // Sets the commentary text. `source` is 'Rival' or 'local' (CSS shows a label for each).
   setCaption(text, source) {
     this.caption.textContent = text
     this.caption.dataset.source = source ?? ''
-    this.caption.title = source === 'ai' ? 'Commentary written by an LLM' : source === 'local' ? 'Fallback commentary' : ''
+    this.caption.title = source === 'Rival' ? 'Commentary written by a Rival' : source === 'local' ? 'Fallback commentary' : ''
   }
 
-  // ------------------------------------------------------------ internals ----
+  // ------------------------------------------------------------ internals ------------------------------------------------
 
   // Extracts the attacker or defender info from a round event's data.
   #side(data, which) {
@@ -156,7 +154,7 @@ export class BattleView {
       `<svg class="sico ${i < Math.min(n, shown) ? '' : 'dead'}" viewBox="0 0 100 140"><use href="#soldier"/></svg>`).join('')
   }
 
-  // Creates `n` tumbling dice on each side and keeps changing their faces.
+  // Creates 'n' tumbling dice on each side and keeps changing their faces.
   #rollDice(n) {
     const make = () => Array.from({ length: n }, () => {
       const d = makeDie(1 + Math.floor(Math.random() * 6))
@@ -166,13 +164,13 @@ export class BattleView {
     this.diceA.replaceChildren(...make())
     this.diceD.replaceChildren(...make())
     clearInterval(this._rollTimer)
-    // Every 70ms give each rolling die a new random face.
+    // Every 70ms give each rolling die a new random face
     this._rollTimer = setInterval(() => {
       this.root.querySelectorAll('.die.rolling').forEach((d) => setDie(d, 1 + Math.floor(Math.random() * 6)))
     }, 70)
   }
 
-  // Stops the tumbling and shows the real numbers, coloured as winner/loser/tie.
+  // Stops the tumbling and shows the real numbers, coloured as winner/loser/tie
   #showDice(pairs) {
     clearInterval(this._rollTimer)
     pairs.forEach((p, i) => {
@@ -182,13 +180,13 @@ export class BattleView {
       d.classList.remove('rolling')
       setDie(a, p.a)
       setDie(d, p.d)
-      // The winning die glows, the losing die fades, tied dice get a grey ring.
+      // The winning die glows, the losing die fades, tied dice get a grey ring
       a.classList.add(p.winner === 'attacker' ? 'won' : p.winner === 'defender' ? 'lost' : 'tied')
       d.classList.add(p.winner === 'defender' ? 'won' : p.winner === 'attacker' ? 'lost' : 'tied')
     })
   }
 
-  // Lifts the pair of dice currently being fought.
+  // Lifts the pair of dice currently being fought
   #markDuel(i, on) {
     this.diceA.children[i]?.classList.toggle('now', on)
     this.diceD.children[i]?.classList.toggle('now', on)

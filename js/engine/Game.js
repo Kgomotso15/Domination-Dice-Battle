@@ -1,13 +1,9 @@
-// ============================================================================
-// Game.js
-// The heart of the project. A Game owns ALL the game state (countries, players,
-// whose turn it is...) and is the ONLY place that is allowed to change it.
+// A Game owns ALL the game state (countries, players, whose turn it is...) and is the only place that is allowed to change it.
 // Every public method checks the move is legal and throws a RuleError if not,
-// so neither the buttons on screen nor rival general can ever cheat.
+// so neither the buttons on screen nor rival general can ever cheat
 //
-// A turn moves through these phases:
-//   reinforce -> action -> attack -> postAttack -> (next player's turn) ...
-// ============================================================================
+// A turn moves through these phases: reinforce -> action -> attack -> postAttack -> (next player's turn) 
+
 import {
   MAX_ROUNDS,
   REINFORCEMENTS_PER_COUNTRY,
@@ -18,8 +14,7 @@ import {
   soldiersForPopulation
 } from './rules.js'
 
-// A special kind of Error used for "that move is not allowed" problems,
-// so the UI can tell them apart from real bugs.
+// A special kind of Error used for "that move is not allowed" problems, so the UI can tell them apart from real bugs
 export class RuleError extends Error {}
 
 // One colour per player, used for the stripes on the board. The first is the human's (rose).
@@ -28,49 +23,48 @@ const PLAYER_COLORS = [
   '#7AA2F7', '#C3E88D', '#FF9E64', '#B4A7FF', '#D9D9E3'
 ]
 
-// Names for the rival generals. They are deliberately NOT country names, so
-// "Crimson Accord" can never be confused with a country on the board.
+// Names for the rival generals. 
 const NPC_NAMES = [
   'Jasper', 'Emerald', 'Pearl', 'Sapphire', 'Topaz',
   'Dorian', 'Rose', 'Amari', 'Raphael', 'Lysander',
   'Saint', 'Aurum'
 ]
 
-// The three rival personalities. Nine rival generals are dealt from this list in turn.
+// The three rival personalities. Nine rival generals are dealt from this list in turn
 const NPC_PROFILE_KEYS = ['aggressor', 'balanced', 'defender']
 
 export class Game {
-  // `state` is a plain object (so it can be saved to the database as-is).
+  // 'state' is a plain object (so it can be saved to the database as-is)
   constructor(state) {
     this.state = state
   }
 
-  // ---------------------------------------------------------------- setup ----
+  // --------------------------------------------------------- SETUP -------------------------------------------------------
 
-  // Builds a brand-new game. `countries` is the full world list; `rng` can be faked in tests.
+  // Builds a brand-new game. 'countries' is the full world list; 'rng' can be faked in tests
   static create({ ownerUid, humanName, humanCode, countries, rng = Math.random }) {
-    // Find the country the player picked.
+    // Find the country the player picked
     const human = countries.find((c) => c.code === humanCode)
-    // If the code does not exist, refuse to start.
+    // If the code does not exist, refuse to start
     if (!human) throw new RuleError('Unknown starting country')
-    // Shuffle everyone else and keep the first 9: these are the random rivals.
+    // Shuffle everyone else and keep the first 9: these are the random rivals
     const others = shuffle(countries.filter((c) => c.code !== humanCode), rng).slice(0, WORLD_SIZE - 1)
-    // The player's country comes first, then the 9 rivals: 10 countries in total.
+    // The player's country comes first, then the 9 rivals: 10 countries in total
     const chosen = [human, ...others]
-    // Deal out personalities to the 9 AI generals, then shuffle so they are mixed up.
+    // Deal out personalities to the 9 rival generals, then shuffle so they are mixed up
     const profiles = shuffle(
       Array.from({ length: WORLD_SIZE - 1 }, (_, i) => NPC_PROFILE_KEYS[i % NPC_PROFILE_KEYS.length]),
       rng
     )
-    // Shuffle the pool of AI names and take 9 of them.
+    // Shuffle the pool of rival names and take 9 of them
     const names = shuffle(NPC_NAMES, rng).slice(0, WORLD_SIZE - 1)
 
-    // Build the list of players: one per country, player 0 is the human.
+    // Build the list of players: one per country, player 0 is the human
     const players = chosen.map((country, i) => ({
       id: `p${i}`,                                  // p0, p1, p2 ... unique id
-      name: i === 0 ? humanName : names[i - 1],     // the human's name, or an AI general's name
+      name: i === 0 ? humanName : names[i - 1],     // the human's name, or a rival general's name
       isHuman: i === 0,                             // only player 0 is human
-      profile: i === 0 ? null : profiles[i - 1],    // AI personality (humans have none)
+      profile: i === 0 ? null : profiles[i - 1],    // rival personality (humans have none)
       color: PLAYER_COLORS[i],                      // colour used on the board
       eliminated: false                             // nobody is out yet
     }))
@@ -90,7 +84,7 @@ export class Game {
       }
     })
 
-    // Random first player: rotate the seating order by a random amount.
+    // Random first player: rotate the seating order by a random amount
     const start = Math.floor(rng() * WORLD_SIZE)
     const ids = players.map((p) => p.id)
     const order = [...ids.slice(start), ...ids.slice(0, start)]
@@ -112,7 +106,7 @@ export class Game {
       attack: null,              // details about an attack in progress, or null
       winnerId: null,
       endedByRoundLimit: false,
-      openingShield: true,       // AI cannot attack the human before the human's first turn
+      openingShield: true,       // rival cannot attack the human before the human's first turn
       eventSeq: 0                // counter used to number log events
     })
     // Start the first turn.
@@ -120,7 +114,7 @@ export class Game {
     return game
   }
 
-  // ----------------------------------------------------------- read helpers ----
+  // ----------------------------------------------------------- read helpers ---------------------------------------------------
 
   // Looks up a player by id.
   player(id) { return this.state.players.find((p) => p.id === id) }
@@ -139,7 +133,7 @@ export class Game {
   // A plain copy of the state, safe to hand to the database.
   toJSON() { return JSON.parse(JSON.stringify(this.state)) }
 
-  // -------------------------------------------------------- turn lifecycle ----
+  // -------------------------------------------------------- turn lifecycle -------------------------------------------------------
 
   // Sets everything up for whoever's turn it now is.
   beginTurn() {
@@ -157,7 +151,7 @@ export class Game {
     s.phase = s.reinforcePool > 0 ? 'reinforce' : 'action'
   }
 
-  // Places the new soldiers. `allocations` looks like { ZA: 2, BR: 1 }.
+  // Places the new soldiers. 'allocations' looks like { ZA: 2, BR: 1 }.
   allocateReinforcements(allocations) {
     // Only legal during the reinforce phase.
     this.#expect('reinforce')
@@ -308,7 +302,7 @@ export class Game {
     this.#advance()
   }
 
-  // ------------------------------------------------------------ internals ----
+  // ------------------------------------------------------ internals -------------------------------------------------
   // Names starting with # are private: code outside this class cannot call them.
 
   // Throws unless the game is currently in the given phase.
@@ -317,21 +311,21 @@ export class Game {
     if (this.state.phase !== phase) throw new RuleError(`Not allowed during the ${this.state.phase} phase`)
   }
 
-  // Who owns a country (or undefined if the code is unknown).
+  // Who owns a country (or undefined if the code is unknown)
   #owner(code) { return this.country(code)?.ownerId }
 
-  // Hands control to the next player who is still in the game.
+  // Hands control to the next player who is still in the game
   #advance() {
     const s = this.state
     const n = s.order.length
-    // Keep moving to the next seat until we find someone who has not been eliminated.
+    // Keep moving to the next seat until we find someone who has not been eliminated
     do {
       s.seat = (s.seat + 1) % n   // % n wraps back to seat 0 after the last seat
       s.seatAdvances++
     } while (this.player(s.order[s.seat]).eliminated)
-    // A round is complete every time the turn has moved past all n seats.
+    // A round is complete every time the turn has moved past all n seats
     s.round = Math.floor(s.seatAdvances / n) + 1
-    // If the game has dragged on too long, stop it and pick a winner by score.
+    // If the game has dragged on too long, stop it and pick a winner by score
     if (s.round > MAX_ROUNDS) return this.#finishByScore()
     // Otherwise start the next player's turn.
     this.beginTurn()
@@ -345,7 +339,7 @@ export class Game {
     this.state.attack = null
   }
 
-  // Only used by the round-limit safety net: most countries wins, then most soldiers.
+  // Only used by the round-limit safety net: most countries wins, then most soldiers
   #finishByScore() {
     const score = (p) => {
       const owned = this.ownedBy(p.id)

@@ -1,9 +1,7 @@
-// ============================================================================
-// GameScreen.js
 // Ties the game page's HTML elements to the individual views (battle panel,
 // board, log, controls) and owns the popups (Your turn banner, intro card,
 // victory/defeat dialog). It contains NO game logic.
-// ============================================================================
+
 import { BattleView } from './BattleView.js'
 import { BoardView } from './BoardView.js'
 import { ControlsView } from './ControlsView.js'
@@ -14,17 +12,17 @@ const CROWN = '<svg viewBox="0 0 64 64"><path d="M6 20l12 12 14-20 14 20 12-12-5
 const SKULL = '<svg viewBox="0 0 64 64"><path d="M32 4C18 4 8 14 8 28c0 8 4 14 10 17v9h8v-5h4v5h4v-5h4v5h8v-9c6-3 10-9 10-17C56 14 46 4 32 4zM22 36a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm20 0a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>'
 
 export class GameScreen {
-  // `root` = the game section, `handlers` = callbacks from the app, `audio` = sound player.
+  // 'root' = the game section, 'handlers' = callbacks from the app, 'audio' = sound player.
   constructor(root, handlers, audio) {
     this.root = root
     this.audio = audio
     this.handlers = handlers
-    // Create each view and give it the part of the page it controls.
+    // Create each view and give it the part of the page it controls
     this.battle = new BattleView(root.querySelector('#arenaPanel'), audio)
     this.board = new BoardView(root.querySelector('#board'), root.querySelector('#players'), handlers.onPick)
     this.log = new LogView(root.querySelector('#log'))
     this.controls = new ControlsView(root.querySelector('#controls'), handlers)
-    // Header elements.
+    // Header elements
     this.titleEl = root.querySelector('#gameTitle')
     this.statusEl = root.querySelector('#statusLine')
     this.modeEl = root.querySelector('#modeBadge')
@@ -34,7 +32,7 @@ export class GameScreen {
     this.flashEl = root.querySelector('#turnFlash')
   }
 
-  // Updates the page header: title, status line, Playing/Watching badge and round number.
+  // Updates the page header: title, status line, Playing/Watching badge and round number
   setHeader({ title, status, mode, round }) {
     this.titleEl.textContent = title
     this.statusEl.textContent = status
@@ -43,12 +41,12 @@ export class GameScreen {
     this.roundEl.textContent = `Round ${round}`
   }
 
-  // Shows or hides the full-screen loading overlay.
+  // Shows or hides the full-screen loading overlay
   setLoading(on) {
     document.querySelector('#loading').classList.toggle('done', !on)
   }
 
-  // A big banner across the battle scene, e.g. "Your turn".
+  // A big banner across the battle scene, e.g. "Your turn"
   flash(text) {
     this.flashEl.textContent = text
     this.flashEl.classList.remove('show')
@@ -56,7 +54,7 @@ export class GameScreen {
     this.flashEl.classList.add('show')
   }
 
-  // Shows the "how your game works" card once per browser. Resolves when the player clicks Start.
+  // Shows the "how your game works" card once per browser. Resolves when the player clicks Start
   showIntro() {
     const KEY = 'gdb.intro'
     // If they have seen it before, skip straight on.

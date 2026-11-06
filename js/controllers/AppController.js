@@ -1,9 +1,7 @@
-// ============================================================================
-// AppController.js
 // Page-level wiring for the whole app: which screen is showing (menu, command
 // centre, country picker, game), sign in / sign out, the settings dialog, music,
 // and opening a game from the web address (?game=ID).
-// ============================================================================
+
 import { COUNTRIES } from '../data/countries.js'
 import { Game } from '../engine/Game.js'
 import { AudioService } from '../services/AudioService.js'
@@ -15,7 +13,7 @@ import { GameListView } from '../views/GameListView.js'
 import { GameScreen } from '../views/GameScreen.js'
 import { GameController } from './GameController.js'
 
-// Shortcut: find one element on the page by CSS selector.
+// Shortcut: find one element on the page by CSS selector
 const $ = (sel) => document.querySelector(sel)
 // Makes text safe to put inside HTML.
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
@@ -27,7 +25,7 @@ export class AppController {
     this.auth = new AuthService()                    // sign in / out
     this.repo = new GameRepository()                 // database
     this.audio = new AudioService()                  // music and sound effects
-    this.commentary = new CommentaryService(() => this.auth.idToken())  // AI commentary
+    this.commentary = new CommentaryService(() => this.auth.idToken())  // rival commentary
     this.user = null                                 // the signed-in user (null = visitor)
     this.current = null                              // the GameController of the open game
     this.authMode = 'signin'                         // sign-in dialog shows 'signin' or 'signup'
@@ -35,7 +33,7 @@ export class AppController {
     this.screen = null                               // the GameScreen (created the first time a game opens)
   }
 
-  // Starts the app.
+  // Starts the app
   init() {
     // The two searchable game lists and the country picker.
     this.myList = new GameListView($('#myBlock'))
@@ -60,7 +58,7 @@ export class AppController {
     })
   }
 
-  // ------------------------------------------------- screens and routing ----
+  // ------------------------------------------------- screens and routing -----------------------------------------
 
   // Shows one screen and hides the others. Also switches the music track:
   // the soft menu track on every screen except the game itself.
@@ -144,9 +142,9 @@ export class AppController {
     else this.#goHub()
   }
 
-  // ----------------------------------------------------------------- hub ----
+  // ----------------------------------------------------------------- HUB ---------------------------------------------
 
-  // Loads both game lists from the database.
+  // Loads both game lists from the database
   async #loadLists() {
     // Helper: show "Loading…", then the games, or an error message.
     const load = async (list, loader) => {
@@ -158,20 +156,20 @@ export class AppController {
     if (this.user) load(this.myList, () => this.repo.listMine(this.user.uid))
   }
 
-  // Creates a new game for the chosen country and opens it.
+  // Creates a new game for the chosen country and opens it
   async #startNewGame(code) {
     // Only signed-in users can start games.
     if (!this.user) return this.#requireLogin(() => this.#startNewGame(code))
     this.#loading(true)
     try {
-      // Build the game (picks 9 random rivals, deals soldiers, picks who goes first).
+      // Build the game (picks 9 random rivals, deals soldiers, picks who goes first)
       const game = Game.create({
         ownerUid: this.user.uid,
         humanName: this.user.displayName || 'You',
         humanCode: code,
         countries: COUNTRIES
       })
-      // Save it to the database and get its id.
+      // Save it to the database and get its id
       const id = await this.repo.createGame(this.user.uid, this.user.displayName || 'Player', game.toJSON())
       // Put ?game=ID in the address bar so the link can be shared, then open it.
       history.pushState({}, '', `?game=${id}`)
@@ -182,7 +180,7 @@ export class AppController {
     }
   }
 
-  // ---------------------------------------------------------------- auth ----
+  // ---------------------------------------------------------------- AUTH ---------------------------------------------
 
   // Updates the top-right corner: the user's name + Sign out, or a Sign in button.
   #renderUser() {
@@ -239,7 +237,7 @@ export class AppController {
     }
   }
 
-  // ------------------------------------------------ static buttons, settings ----
+  // ------------------------------------------------ static buttons, settings ---------------------------------------------
 
   // Attaches click handlers to all the fixed buttons in index.html.
   #bindStaticUi() {
