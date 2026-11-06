@@ -23,7 +23,7 @@ Imagine a board game where every player owns one country and has a little army. 
 ### Step 2 - Start a game
 1. Press **Play**, then **New campaign**.
 2. Pick your country. You can type in the search box to find it fast. Countries with more people start with more soldiers.
-3. Press **Confirm**. Nine Rivals are picked for you at random and every Rival gets a made-up name like "Iron Accord" or "Crimson Pact".
+3. Press **Confirm**. Nine Rivals are picked for you at random and every Rival gets a made-up name like "Raphael" or "Emerald".
 
 ### Step 3 - Understand the board
 - Every country shows its flag, name and number of soldiers. Your countries are in your colour.
@@ -188,35 +188,6 @@ games/{gameId}              one game
 **Design choices:** the game state is stored in one document (cheap, atomic, easy to resume); the log is a subcollection ordered by `seq` so it can grow without making the game document large; the log is **append-only** (rules forbid edits and deletes).
 
 
-##  How authentication and access control work
-
-**Authentication** uses Firebase Authentication with **email + password**.
-1. *Create an account:* `AuthService.signUp` creates the user and stores the display name.
-2. *Sign in:* `AuthService.signIn`. Firebase issues a signed **ID token** and keeps the user logged in.
-3. The app listens for changes with `onAuthStateChanged`, so the screens always match the login state.
-4. Error codes are translated to plain sentences ("Email or password is incorrect").
-
-**Authorization (who may do what)** is enforced by the **database itself** in `firestore.rules`, not only by hiding buttons:
-
-| Action | Who is allowed |
-|---|---|
-| Read a game or its log | Anyone with the link (public, so watch links work) |
-| Create a game | Signed-in user, and only with their own `ownerUid` |
-| Change or delete a game | Only the owner; the owner cannot be reassigned |
-| Add log events | Only the owner of that game |
-| Edit or delete log events | Nobody (append-only) |
-| Read or write `users/{uid}` | Only that user |
-
-**Data validation** (also in the rules): required fields must exist, `status` must be `active` or `finished`, names are limited to 40 characters, log entries must have an allowed `type` and at most 800 characters. A tampered browser cannot write junk.
-
-**In the app:** the game screen has a *play* mode (owner) and a *watch* mode (everyone else, controls hidden). The AI endpoint also checks the caller's Firebase token (section 10).
-
-**Links**
-- Firebase console: https://console.firebase.google.com (project `geo-game-53507`)
-- Vercel dashboard: https://vercel.com
-- Google AI Studio (Gemini key): https://aistudio.google.com
-
-
 ##  How AI was used
 
 ###  AI inside the application
@@ -240,12 +211,3 @@ Each Rival is randomly given one of three **personalities**, and each plays diff
 
 Every Rival's reasoning, including which personality drove the choice, is written to the log. A second small extra is the **opening shield**: Rivals cannot attack the human before the human's first turn.
 
-
-##  Assumptions and known limits
-
-- **Conquest reward:** I used the defender's soldier count at the **start of the attack**. To use the original population-based value instead, change `targetSoldiersAtStart` in `Game.js`.
-- **Opening shield** is an added rule so you are never wiped out before your first turn (remove the `shielded` filter in `NpcStrategy.chooseAttack` to disable it).
-- A 150-round safety limit decides a winner on countries, then soldiers, if a game somehow never ends (none of 20 simulated all-Rival games reached it).
-- Rival names are invented (for example "Iron Accord") rather than "<Country> AI", so a Rival is never confused with a country it happens to own. Games saved before this change keep their older names.
-- The free Firestore tier allows about 20,000 writes per day (roughly 6 full games). The free Gemini tier is rate limited, which is why local commentary is the fallback.
-- Opening the same game as the owner in two tabs is not blocked.
