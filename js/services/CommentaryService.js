@@ -8,7 +8,7 @@ export class CommentaryService {
     this.getToken = getToken
   }
 
-  // Returns { text, source } where source is 'Rival' (from Gemini) or 'local' (fallback template).
+  // Returns { text, source } where source is 'AI' (from Gemini) or 'local' (fallback template).
   async generate(ctx, { timeoutMs = 4000 } = {}) {
     try {
       const token = await this.getToken()
